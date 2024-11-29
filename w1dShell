@@ -1,0 +1,62 @@
+#!/bin/bash
+_w1dShell_completion() {
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    opts="openp closep shutdown install remove"
+
+    if [[ ${cur} == * ]] ; then
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+        return 0
+    fi
+}
+complete -F _w1dShell_completion w1dShell
+while true; do
+    echo -n "w1dShell> "
+    read -e -p "" command
+
+    args=($command)
+
+    case "${args[0]}" in
+        openp)
+            if [[ -n "${args[1]}" ]]; then
+                ${args[1]} &
+            else
+                echo "Usage: openp [program]"
+            fi
+            ;;
+        closep)
+            if [[ -n "${args[1]}" ]]; then
+                pkill -f "${args[1]}"
+            else
+                echo "Usage: closep [program]"
+            fi
+            ;;
+        shutdown)
+            sudo shutdown now
+            ;;
+        install)
+            if [[ -n "${args[1]}" ]]; then
+                sudo apt-get install -y "${args[1]}"
+            else
+                echo "Usage: install [program]"
+            fi
+            ;;
+        remove)
+            if [[ -n "${args[1]}" ]]; then
+                sudo apt-get remove -y "${args[1]}"
+            else
+                echo "Usage: remove [program]"
+            fi
+            ;;
+        exit)
+            break
+            ;;
+        *)
+            if [[ -n "${args[0]}" ]]; then
+                eval "${command}"
+            fi
+            ;;
+    esac
+done
