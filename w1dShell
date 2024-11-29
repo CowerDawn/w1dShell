@@ -38,14 +38,14 @@ while true; do
             ;;
         install)
             if [[ -n "${args[1]}" ]]; then
-                sudo apt-get install -y "${args[1]}"
+                sudo pacman -S "${args[1]}"
             else
                 echo "Usage: install [program]"
             fi
             ;;
         remove)
             if [[ -n "${args[1]}" ]]; then
-                sudo apt-get remove -y "${args[1]}"
+                sudo pacman -S "${args[1]}"
             else
                 echo "Usage: remove [program]"
             fi
