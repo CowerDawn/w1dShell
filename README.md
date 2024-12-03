@@ -9,4 +9,6 @@ Install settings proggram:
 
 gcc -o w1dSettings w1dSettings.c `pkg-config --cflags --libs gtk+-3.0`
 
-./w1dSettings 
+`./w1dSettings`
+
+
