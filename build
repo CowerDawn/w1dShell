@@ -1,0 +1,3 @@
+#!/bin/bash
+sudo make install
+gcc -o w1dSettings w1dSettings.c `pkg-config --cflags --libs gtk+-3.0`
