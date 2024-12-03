@@ -1,16 +1,51 @@
 #!/bin/bash
 clear
-forbidden_commands=("sudo" "su" "doas" "pkexec" "systemctl" "mount" "umount" "dd" "fdisk" "gdisk" "parted" "mkfs" "fsck" "chown" "chmod" "chgrp" "passwd" "visudo" "adduser" "deluser" "addgroup" "delgroup" "reboot" "shutdown" "poweroff" "halt")
+CONFIG_FILE="usconf.conf"
+
+declare -A user_rights
+
+read_config() {
+    if [[ ! -f "$CONFIG_FILE" ]]; then
+        echo "Error: Configuration file '$CONFIG_FILE' not found."
+        exit 1
+    fi
+
+    while IFS= read -r line; do
+        if [[ "$line" =~ ^user= ]]; then
+            user=$(echo "$line" | cut -d'=' -f2)
+        elif [[ "$line" =~ ^rootc= ]]; then
+            rootc=$(echo "$line" | cut -d'=' -f2)
+            user_rights["$user"]="$rootc"
+        fi
+    done < "$CONFIG_FILE"
+}
 
 is_forbidden() {
-    local cmd=$1
-    for forbidden in "${forbidden_commands[@]}"; do
-        if [[ "$cmd" == "$forbidden" ]]; then
-            return 0
-        fi
-    done
-    return 1
+    local user=$1
+    local cmd=$2
+
+    if [[ "$user" == "root" ]]; then
+        return 1  
+    fi
+
+    if [[ -z "${user_rights[$user]}" ]]; then
+        return 0  
+    fi
+
+    local rootc=${user_rights[$user]}
+
+    if [[ "$rootc" == "on" ]]; then
+        return 1  
+    else
+        return 0  
+    fi
 }
+
+read_config
+
+current_user=$(whoami)
+
+root_commands=("sudo" "su" "doas" "pkexec" "systemctl" "mount" "umount" "dd" "fdisk" "gdisk" "parted" "mkfs" "fsck" "chown" "chmod" "chgrp" "passwd" "visudo" "adduser" "deluser" "addgroup" "delgroup" "reboot" "shutdown" "poweroff" "halt")
 
 shut() {
     echo "Shutting down the system..."
@@ -30,13 +65,12 @@ closep() {
 }
 
 while true; do
-    # Вывод приглашения
     read -p "w1dShell> " input
 
     read -ra cmd <<< "$input"
 
-    if is_forbidden "${cmd[0]}"; then
-        echo "Error: Command '${cmd[0]}' is forbidden."
+    if [[ " ${root_commands[@]} " =~ " ${cmd[0]} " ]] && ! is_forbidden "$current_user" "${cmd[0]}"; then
+        echo "Error: Command '${cmd[0]}' is forbidden for user '$current_user'."
     else
         case "${cmd[0]}" in
             shut)
