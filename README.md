@@ -2,8 +2,8 @@
 w1dShell - this is a shell for employees of large companies, designed for easy work with a PC and for limiting user rights.
 Install shell:
 `cd w1dShell`
-`sudo make install`
-`w1dShell`
+`chmod +x build`
+`./build`
 
 Install settings proggram:
 
