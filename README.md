@@ -1,2 +1,2 @@
 # w1dShell
-w1dShell - simplifies working with bash and adds new commands for it. It is a shell for Unix-like systems.
+w1dShell - this is a shell for employees of large companies, designed for easy work with a PC and for limiting user rights.
