@@ -94,6 +94,9 @@ while true; do
                 echo "Exiting w1dShell..."
                 exit 0
                 ;;
+            pumba)
+                if [[ -n "${cmd[1]}" ]]; then
+                    pumba "${cmd[1]}"
             *)
                 eval "$input"
                 ;;
