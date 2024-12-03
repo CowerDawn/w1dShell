@@ -1,62 +1,68 @@
 #!/bin/bash
-_w1dShell_completion() {
-    local cur prev opts
-    COMPREPLY=()
-    cur="${COMP_WORDS[COMP_CWORD]}"
-    prev="${COMP_WORDS[COMP_CWORD-1]}"
-    opts="openp closep shutdown install remove"
+clear
+forbidden_commands=("sudo" "su" "doas" "pkexec" "systemctl" "mount" "umount" "dd" "fdisk" "gdisk" "parted" "mkfs" "fsck" "chown" "chmod" "chgrp" "passwd" "visudo" "adduser" "deluser" "addgroup" "delgroup" "reboot" "shutdown" "poweroff" "halt")
 
-    if [[ ${cur} == * ]] ; then
-        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-        return 0
-    fi
+is_forbidden() {
+    local cmd=$1
+    for forbidden in "${forbidden_commands[@]}"; do
+        if [[ "$cmd" == "$forbidden" ]]; then
+            return 0
+        fi
+    done
+    return 1
 }
-complete -F _w1dShell_completion w1dShell
+
+shut() {
+    echo "Shutting down the system..."
+    sudo shutdown -h now
+}
+
+openp() {
+    local program=$1
+    echo "Opening $program..."
+    $program &
+}
+
+closep() {
+    local program=$1
+    echo "Closing $program..."
+    pkill -f $program
+}
+
 while true; do
-    echo -n "w1dShell> "
-    read -e -p "" command
+    # Вывод приглашения
+    read -p "w1dShell> " input
 
-    args=($command)
+    read -ra cmd <<< "$input"
 
-    case "${args[0]}" in
-        openp)
-            if [[ -n "${args[1]}" ]]; then
-                ${args[1]} &
-            else
-                echo "Usage: openp [program]"
-            fi
-            ;;
-        closep)
-            if [[ -n "${args[1]}" ]]; then
-                pkill -f "${args[1]}"
-            else
-                echo "Usage: closep [program]"
-            fi
-            ;;
-        shutdown)
-            sudo shutdown now
-            ;;
-        install)
-            if [[ -n "${args[1]}" ]]; then
-                sudo pacman -S "${args[1]}"
-            else
-                echo "Usage: install [program]"
-            fi
-            ;;
-        remove)
-            if [[ -n "${args[1]}" ]]; then
-                sudo pacman -S "${args[1]}"
-            else
-                echo "Usage: remove [program]"
-            fi
-            ;;
-        exit)
-            break
-            ;;
-        *)
-            if [[ -n "${args[0]}" ]]; then
-                eval "${command}"
-            fi
-            ;;
-    esac
+    if is_forbidden "${cmd[0]}"; then
+        echo "Error: Command '${cmd[0]}' is forbidden."
+    else
+        case "${cmd[0]}" in
+            shut)
+                shut
+                ;;
+            openp)
+                if [[ -n "${cmd[1]}" ]]; then
+                    openp "${cmd[1]}"
+                else
+                    echo "Usage: openp <program>"
+                fi
+                ;;
+            closep)
+                if [[ -n "${cmd[1]}" ]]; then
+                    closep "${cmd[1]}"
+                else
+                    echo "Usage: closep <program>"
+                fi
+                ;;
+            exit)
+                echo "Exiting w1dShell..."
+                exit 0
+                ;;
+            *)
+                eval "$input"
+                ;;
+        esac
+    fi
 done
